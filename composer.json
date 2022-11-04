@@ -1,0 +1,21 @@
+{
+    "name": "mggflow/tg-xtrime-api",
+    "type": "library",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "MGGFLOW\\Telegram\\Xtrime\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Pavel Eliseev",
+            "email": "deusagnis@gmail.com",
+            "homepage": "https://mggflow.in",
+            "role": "Developer"
+        }
+    ],
+    "require": {
+        "guzzlehttp/guzzle": "^7.5"
+    }
+}
