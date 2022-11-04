@@ -4,7 +4,10 @@ namespace MGGFLOW\Telegram\Xtrime;
 
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
+use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Psr7\Response;
+use MGGFLOW\Telegram\Xtrime\Exceptions\ApiError;
+use MGGFLOW\Telegram\Xtrime\Exceptions\FailedRequest;
 
 class Api
 {
@@ -107,13 +110,20 @@ class Api
     /**
      * Send request to API.
      * @return false|mixed
+     * @throws ApiError
+     * @throws FailedRequest
      * @throws GuzzleException
      */
     public function send()
     {
         $this->prepareRequestOptions();
 
-        $this->response = $this->client->request('POST', $this->genRequestUrl(), $this->requestOptions);
+        try{
+            $this->response = $this->client->request('POST', $this->genRequestUrl(), $this->requestOptions);
+        }catch(RequestException $e){
+            $this->handleRequestException($e);
+        }
+
 
         return $this->getContent();
     }
@@ -130,10 +140,17 @@ class Api
         return $this;
     }
 
-    /**
-     * Remove previous request data.
-     * @return void
-     */
+    protected function handleRequestException(RequestException $e){
+        if($e->hasResponse()){
+            $decodedResp = json_decode($e->getResponse()->getBody());
+            if (json_last_error() === JSON_ERROR_NONE) {
+                throw (new ApiError())->fillMessageFromResponseErrors($decodedResp);
+            }
+        }
+
+        throw new FailedRequest($e->getMessage());
+    }
+
     protected function resetCallData()
     {
         $this->response = null;
