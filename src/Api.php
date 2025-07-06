@@ -114,7 +114,7 @@ class Api
      * @throws FailedRequest
      * @throws GuzzleException
      */
-    public function send()
+    public function send(): mixed
     {
         $this->prepareRequestOptions();
 
@@ -140,18 +140,22 @@ class Api
         return $this;
     }
 
+    /**
+     * @throws ApiError
+     * @throws FailedRequest
+     */
     protected function handleRequestException(RequestException $e){
         if($e->hasResponse()){
             $decodedResp = json_decode($e->getResponse()->getBody());
             if (json_last_error() === JSON_ERROR_NONE) {
-                throw (new ApiError())->fillMessageFromResponseErrors($decodedResp);
+                throw new ApiError()->fillMessageFromResponseErrors($decodedResp);
             }
         }
 
         throw new FailedRequest($e->getMessage());
     }
 
-    protected function resetCallData()
+    protected function resetCallData(): void
     {
         $this->response = null;
     }
@@ -176,7 +180,7 @@ class Api
         }
     }
 
-    protected function prepareRequestOptions()
+    protected function prepareRequestOptions(): void
     {
         $this->requestOptions['body'] = json_encode([
             $this->paramsWrapKey => $this->params

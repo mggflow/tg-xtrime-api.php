@@ -16,7 +16,7 @@
         }
     ],
     "require": {
-        "guzzlehttp/guzzle": "^7.5",
-        "ext-json": "*"
+        "ext-json": "*",
+        "guzzlehttp/guzzle": "^7.9"
     }
 }
