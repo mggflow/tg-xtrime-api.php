@@ -23,7 +23,7 @@ class Api
      */
     public ?Response $response = null;
 
-    protected string $paramsWrapKey = 'data';
+    protected string $paramsWrapKey;
     protected Client $client;
     protected array $params = [];
     protected string $tgXtrimeApiUrl;
@@ -32,9 +32,10 @@ class Api
     protected ?string $className;
     protected string $methodName;
 
-    public function __construct(string $apiUrl)
+    public function __construct(string $apiUrl, string $paramsWrapKey = 'data')
     {
         $this->tgXtrimeApiUrl = $apiUrl;
+        $this->paramsWrapKey = $paramsWrapKey;
 
         $this->client = new Client([
             'headers' => ['Content-Type' => 'application/json']
@@ -109,18 +110,19 @@ class Api
 
     /**
      * Send request to API.
+     * @param bool $wrapParams
      * @return false|mixed
      * @throws ApiError
      * @throws FailedRequest
      * @throws GuzzleException
      */
-    public function send(): mixed
+    public function send(bool $wrapParams = true): mixed
     {
-        $this->prepareRequestOptions();
+        $this->prepareRequestOptions($wrapParams);
 
-        try{
+        try {
             $this->response = $this->client->request('POST', $this->genRequestUrl(), $this->requestOptions);
-        }catch(RequestException $e){
+        } catch (RequestException $e) {
             $this->handleRequestException($e);
         }
 
@@ -144,8 +146,9 @@ class Api
      * @throws ApiError
      * @throws FailedRequest
      */
-    protected function handleRequestException(RequestException $e){
-        if($e->hasResponse()){
+    protected function handleRequestException(RequestException $e)
+    {
+        if ($e->hasResponse()) {
             $decodedResp = json_decode($e->getResponse()->getBody());
             if (json_last_error() === JSON_ERROR_NONE) {
                 throw new ApiError()->fillMessageFromResponseErrors($decodedResp);
@@ -180,11 +183,13 @@ class Api
         }
     }
 
-    protected function prepareRequestOptions(): void
+    protected function prepareRequestOptions(bool $wrapParams): void
     {
-        $this->requestOptions['body'] = json_encode([
-            $this->paramsWrapKey => $this->params
-        ]);
+        $this->requestOptions['body'] = json_encode(
+            $wrapParams
+                ? [$this->paramsWrapKey => $this->params]
+                : $this->params
+        );
     }
 
     protected function getContent()
